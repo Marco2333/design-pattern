@@ -50,7 +50,6 @@ Event.listen('squareMeter88', function(price) { // 小红订阅消息
 Event.trigger('squareMeter88', 2000000); // 售楼处发布消息
 
 
-
 ///////////////////////模块通信///////////////////////////
 // <html>
 // <body>
@@ -76,12 +75,12 @@ Event.trigger('squareMeter88', 2000000); // 售楼处发布消息
 // </script>
 // </html>
 
-////////////////////////////////////命名空间////////////////////////////////////////////
-/*************** 具体代码 **********************/
+///////////////////////////命名空间（解决全局事件的命名冲突）（允许先发布后订阅）//////////////////////////////
 var Event = (function() {
     var global = this,
         Event,
         _default = 'default';
+
     Event = function() {
         var _listen,
             _trigger,
@@ -100,6 +99,7 @@ var Event = (function() {
                 }
                 return ret;
             };
+
         _listen = function(key, fn, cache) {
             if (!cache[key]) {
                 cache[key] = [];
@@ -107,15 +107,16 @@ var Event = (function() {
             cache[key].push(fn);
         };
         _remove = function(key, cache, fn) {
-            if (cache[key]) {
+            var cacheKey;
+            if (cacheKey = cache[key]) {
                 if (fn) {
-                    for (var i = cache[key].length; i >= 0; i--) {
-                        if (cache[key] === fn) {
-                            cache[key].splice(i, 1);
+                    for (var i = cacheKey.length - 1; i >= 0; i--) {
+                        if (cacheKey[i] === fn) {
+                            cacheKey.splice(i, 1);
                         }
                     }
                 } else {
-                    cache[key] = [];
+                    cacheKey = [];
                 }
             }
         };
@@ -126,17 +127,18 @@ var Event = (function() {
                 _self = this,
                 ret,
                 stack = cache[key];
+
             if (!stack || !stack.length) {
                 return;
             }
             return each(stack, function() {
                 return this.apply(_self, args);
-            });
+            })
         };
         _create = function(namespace) {
             var namespace = namespace || _default;
             var cache = {},
-                offlineStack = [], // 离线事件
+                offlineStack = [], //离线事件
                 ret = {
                     listen: function(key, fn, last) {
                         _listen(key, fn, cache);
@@ -144,12 +146,13 @@ var Event = (function() {
                             return;
                         }
                         if (last === 'last') {
-                            offlineStack.length && offlineStack.pop()()
+                            offlineStack.length && offlineStack.pop()();
                         } else {
                             each(offlineStack, function() {
                                 this();
                             });
                         }
+
                         offlineStack = null;
                     },
                     one: function(key, fn, last) {
@@ -163,6 +166,7 @@ var Event = (function() {
                         var fn,
                             args,
                             _self = this;
+
                         _unshift.call(arguments, cache);
                         args = arguments;
                         fn = function() {
@@ -174,10 +178,12 @@ var Event = (function() {
                         return fn();
                     }
                 };
+
             return namespace ?
                 (namespaceCache[namespace] ? namespaceCache[namespace] :
                     namespaceCache[namespace] = ret) : ret;
         };
+
         return {
             create: _create,
             one: function(key, fn, last) {
@@ -198,8 +204,11 @@ var Event = (function() {
             }
         };
     }();
-    return Event;
+
+    return Event
+
 })();
+
 
 /************** 先发布后订阅 ********************/
 Event.trigger('click', 1);
