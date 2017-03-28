@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>stock</title>
+</head>
+<body>
+    <div>
+        <span>请选择颜色</span> 
+        <select id="selColor">
+            <option value="roseGold">玫瑰金</option>
+            <option value="luxuryGold">土豪金</option>
+         </select>
+    </div>
+    <div>
+        <span>请输入购买数量：</span>
+        <input type="text" id="selNum" /> 
+    </div>
+    <div>
+        <span>您选择的颜色为：</span><strong id="conColor"></strong>
+        <span>您选择的数量为：</span><strong id="conNum"></strong>
+    </div>
+    
+    <button id="nextBtn">加入购物车</button>
+    <script type="text/javascript">
+        // 库存量
+        var goods = {
+            roseGold: 10,
+            luxuryGold: 10
+        };
+
+        var colorSelect = document.getElementById("selColor"),
+            numberInput = document.getElementById("selNum"),
+            colorInfo = document.getElementById("conColor"),
+            numberInfo = document.getElementById("conNum"),
+            nextBtn = document.getElementById("nextBtn");
+
+        colorSelect.onchange = function() {
+            var color = colorSelect.value, // 颜色
+                number = +numberInput.value, // 数量
+                stock = goods[color]; // 对应颜色的库存量
+
+            colorInfo.innerHTML = color;
+            if (!color) {
+                nextBtn.disabled = true;
+                nextBtn.innerHTML = "请选择手机颜色";
+                return;
+            }
+
+            if (!number || (((number - 0) | 0) !== (number - 0))) {
+                nextBtn.disabled = true;
+                nextBtn.innerHTML = "请选择手机数量";
+                return;
+            }
+
+            if (number > stock) {
+                nextBtn.disabled = true;
+                nextBtn.innerHTML = "库存不足";
+                return;
+            }
+
+            nextBtn.disabled = false;
+            nextBtn.innerHTML = "加入购物车";
+        };
+
+        /* 购买数量做同样处理 */
+    </script>
+    <script>
+        ///////////////////////////中介者模式改造//////////////////////////////////////
+        // 库存量
+        var goods = {
+            "roseGold|16G": 10,
+            "roseGold|32G": 10,
+            "luxuryGold|16G": 10,
+            "luxuryGold|32G": 10
+        };
+
+        var colorSelect = document.getElementById("selColor"),
+            memorySelect = document.getElementById("selMemory"),
+            numberInput = document.getElementById("selNum"),
+            colorInfo = document.getElementById("conColor"),
+            memeryInfo = document.getElementById("conMemory"),
+            numberInfo = document.getElementById("conNum"),
+            nextBtn = document.getElementById("nextBtn");
+
+        var mediator = (function() {
+            return {
+                changed: function(obj) {
+                    var color = colorSelect.value, // 颜色
+                        memory = memorySelect.value, // 内存
+                        number = +numberInput.value, // 数量
+                        stock = goods[color + '|' + memory]; // 对应颜色的库存量
+
+                    if (obj === colorSelect) {
+                        colorInfo.innerHTML = color;
+                    } else if (obj === memorySelect) {
+                        memeryInfo.innerHTML = memory;
+                    } else if (obj === numberInput) {
+                        numberInfo.innerHTML = number;
+                    }
+
+                    if (!color) {
+                        nextBtn.disabled = true;
+                        nextBtn.innerHTML = "请选择手机颜色";
+                        return;
+                    }
+
+                    if (!memory) {
+                        nextBtn.disabled = true;
+                        nextBtn.innerHTML = "请选择手机内存";
+                        return;
+                    }
+
+                    if (!number || (((number - 0) | 0) !== (number - 0))) {
+                        nextBtn.disabled = true;
+                        nextBtn.innerHTML = "请选择手机数量";
+                        return;
+                    }
+
+                    if (number > stock) {
+                        nextBtn.disabled = true;
+                        nextBtn.innerHTML = "库存不足";
+                        return;
+                    }
+
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = "加入购物车";
+                }
+            };
+        })();
+
+        // 事件函数
+        colorSelect.onchange = function() {
+            mediator.changed(this);
+        };
+        memorySelect.onchange = function() {
+            mediator.changed(this);
+        };
+        numberInput.oninput = function() {
+            mediator.changed(this);
+        }
+    </script>
+</body>
+</html>
